@@ -30,11 +30,13 @@ using Task = System.Threading.Tasks.Task;
 namespace NuGet.PackageManagement.VisualStudio
 {
     /// <summary>
-    /// Represents a project object associated with new VS "15" CPS project with package references.
+    /// Represents a project object associated with Common Project System (CPS) project that has opt'd
+    /// into package references. This includes, but may not be limited to, .NET Project System,
+    /// C++ (with PackageReference support) and MSIX deployment projects.
     /// Key feature/difference is the project restore info is pushed by nomination API and stored in 
     /// a cache. Factory method retrieving the info from the cache should be provided.
     /// </summary>
-    public class NetCorePackageReferenceProject : BuildIntegratedNuGetProject
+    public class CpsPackageReferenceProject : BuildIntegratedNuGetProject
     {
         private const string TargetFrameworkCondition = "TargetFramework";
 
@@ -47,7 +49,7 @@ namespace NuGet.PackageManagement.VisualStudio
         private List<(NuGetFramework, Dictionary<string, ProjectInstalledPackage>)> _installedPackages = new List<(NuGetFramework, Dictionary<string, ProjectInstalledPackage>)>();
         private DateTime _lastTimeAssetsModified;
 
-        public NetCorePackageReferenceProject(
+        public CpsPackageReferenceProject(
             string projectName,
             string projectUniqueName,
             string projectFullPath,
