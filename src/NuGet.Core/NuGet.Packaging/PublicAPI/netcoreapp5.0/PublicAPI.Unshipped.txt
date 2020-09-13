@@ -1,4 +1,4 @@
-NuGet.Packaging.ManifestMetadata.SuppressRequireLicenseAcceptance.get -> bool
-NuGet.Packaging.ManifestMetadata.SuppressRequireLicenseAcceptance.set -> void
-NuGet.Packaging.PackageBuilder.SuppressRequireLicenseAcceptance.get -> bool
-NuGet.Packaging.PackageBuilder.SuppressRequireLicenseAcceptance.set -> void
+NuGet.Packaging.ManifestMetadata.EmitRequireLicenseAcceptance.get -> bool
+NuGet.Packaging.ManifestMetadata.EmitRequireLicenseAcceptance.set -> void
+NuGet.Packaging.PackageBuilder.EmitRequireLicenseAcceptance.get -> bool
+NuGet.Packaging.PackageBuilder.EmitRequireLicenseAcceptance.set -> void
