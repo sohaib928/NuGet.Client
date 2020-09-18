@@ -80,11 +80,16 @@ namespace NuGet.PackageManagement.VisualStudio
                 return null;
             }
 
+            // The project must be an IVsHierarchy.
+            var hierarchy = vsProjectAdapter.VsHierarchy;
+            var nominatesOnSolutionLoad = hierarchy.IsCapabilityMatch("VSIX");
+
             return new LegacyPackageReferenceProject(
                 vsProjectAdapter,
                 vsProjectAdapter.ProjectId,
                 projectServices,
-                _threadingService);
+                _threadingService,
+                nominatesOnSolutionLoad);
         }
 
         /// <summary>

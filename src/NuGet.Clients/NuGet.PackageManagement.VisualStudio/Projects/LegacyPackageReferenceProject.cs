@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
@@ -42,12 +43,14 @@ namespace NuGet.PackageManagement.VisualStudio
         private string _projectFullPath;
         private Dictionary<string, ProjectInstalledPackage> _installedPackages = new Dictionary<string, ProjectInstalledPackage>(StringComparer.OrdinalIgnoreCase);
         private DateTime _lastTimeAssetsModified;
+        public bool IsRestoredOnSolutionLoad { get; }
 
         public LegacyPackageReferenceProject(
             IVsProjectAdapter vsProjectAdapter,
             string projectId,
             INuGetProjectServices projectServices,
-            IVsProjectThreadingService threadingService)
+            IVsProjectThreadingService threadingService,
+            bool isRestoredOnSolutionLoad = false)
         {
             Assumes.Present(vsProjectAdapter);
             Assumes.NotNullOrEmpty(projectId);
@@ -69,6 +72,7 @@ namespace NuGet.PackageManagement.VisualStudio
             InternalMetadata.Add(NuGetProjectMetadataKeys.ProjectId, projectId);
 
             ProjectServices = projectServices;
+            IsRestoredOnSolutionLoad = isRestoredOnSolutionLoad;
         }
 
         #region BuildIntegratedNuGetProject
