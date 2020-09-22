@@ -28,9 +28,13 @@ using NuGet.Protocol.Core.Types;
 using NuGet.Resolver;
 using NuGet.Versioning;
 using NuGet.VisualStudio;
+using NuGet.VisualStudio.Contracts;
 using NuGet.VisualStudio.Internal.Contracts;
 using NuGet.VisualStudio.Telemetry;
+using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
+using IBrokeredServiceContainer = Microsoft.VisualStudio.Shell.ServiceBroker.IBrokeredServiceContainer;
 using Resx = NuGet.PackageManagement.UI;
+using SVsBrokeredServiceContainer = Microsoft.VisualStudio.Shell.ServiceBroker.SVsBrokeredServiceContainer;
 using Task = System.Threading.Tasks.Task;
 using VSThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
@@ -67,17 +71,19 @@ namespace NuGet.PackageManagement.UI
         private bool _loadedAndInitialized = false;
         private bool _recommendPackages = false;
         private (string modelVersion, string vsixVersion)? _recommenderVersion;
+        private IAsyncServiceProvider _asyncServiceProvider;
 
-        private PackageManagerControl()
+        private PackageManagerControl(IAsyncServiceProvider asyncServiceProvider)
         {
+            _asyncServiceProvider = asyncServiceProvider;
             InitializeComponent();
         }
 
-        public static async ValueTask<PackageManagerControl> CreateAsync(PackageManagerModel model, INuGetUILogger uiLogger)
+        public static async ValueTask<PackageManagerControl> CreateAsync(PackageManagerModel model, INuGetUILogger uiLogger, IAsyncServiceProvider asyncServiceProvider = null)
         {
             Assumes.NotNull(model);
 
-            var packageManagerControl = new PackageManagerControl();
+            var packageManagerControl = new PackageManagerControl(asyncServiceProvider);
             await packageManagerControl.InitializeAsync(model, uiLogger);
             return packageManagerControl;
         }
@@ -1022,7 +1028,37 @@ namespace NuGet.PackageManagement.UI
 
         private void SettingsButtonClicked(object sender, EventArgs e)
         {
-            Model.UIController.LaunchNuGetOptionsDialog(OptionsPage.PackageSources);
+            //Model.UIController.LaunchNuGetOptionsDialog(OptionsPage.PackageSources);
+
+            NuGetUIThreadHelper.JoinableTaskFactory.RunAsync(async () => 
+            {
+                try
+                {
+                    IProjectContextInfo project = _detailModel.NuGetProjects.First();
+                    var metadata = await project.GetMetadataAsync(CancellationToken.None);
+                    var projectGuid = Guid.Parse(metadata.ProjectId);
+
+                    // Generic VS service broker stuff
+                    var serviceProvider = AsyncServiceProvider.GlobalProvider;
+                    IBrokeredServiceContainer brokeredServiceContainer = (IBrokeredServiceContainer)await serviceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer));
+                    if (brokeredServiceContainer == null)
+                    {
+                        throw new NullReferenceException();
+                    }
+                    var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
+
+                    // NuGet specific code
+                    INuGetProjectService projectServices = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGet.VisualStudio.Contracts.NuGetServices.NuGetProjectServiceV1);
+                    using (projectServices as IDisposable)
+                    {
+                        var result = await projectServices.GetInstalledPackagesAsync(projectGuid, CancellationToken.None);
+                    }
+                }
+                catch (Exception e)
+                {
+                    var str = e.ToString();
+                }
+            });
         }
 
         private void PackageList_SelectionChanged(object sender, SelectionChangedEventArgs e)
