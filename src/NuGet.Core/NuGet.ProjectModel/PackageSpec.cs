@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using NuGet.Common;
 using NuGet.LibraryModel;
 using NuGet.RuntimeModel;
 using NuGet.Shared;
@@ -107,37 +108,43 @@ namespace NuGet.ProjectModel
         /// <remarks>Optional. This is normally set for internal use only.</remarks>
         public ProjectRestoreMetadata RestoreMetadata { get; set; }
 
+        private int? _cachedHashCode = null;
+        // an idea would be to count the GetHashCode calls!.
         public override int GetHashCode()
         {
-            var hashCode = new HashCodeCombiner();
+            if (_cachedHashCode == null)
+            {
+                var hashCode = new HashCodeCombiner();
 
-            hashCode.AddObject(Title);
-            hashCode.AddObject(Version);
-            hashCode.AddObject(IsDefaultVersion);
-            hashCode.AddObject(HasVersionSnapshot);
-            hashCode.AddObject(Description);
-            hashCode.AddObject(Summary);
-            hashCode.AddObject(ReleaseNotes);
-            hashCode.AddSequence(Authors);
-            hashCode.AddSequence(Owners);
-            hashCode.AddObject(ProjectUrl);
-            hashCode.AddObject(IconUrl);
-            hashCode.AddObject(LicenseUrl);
-            hashCode.AddObject(RequireLicenseAcceptance);
-            hashCode.AddObject(Copyright);
-            hashCode.AddObject(Language);
-            hashCode.AddObject(BuildOptions);
-            hashCode.AddSequence(Tags);
-            hashCode.AddSequence(ContentFiles);
-            hashCode.AddSequence(Dependencies);
-            hashCode.AddDictionary(Scripts);
-            hashCode.AddDictionary(PackInclude);
-            hashCode.AddObject(PackOptions);
-            hashCode.AddSequence(TargetFrameworks);
-            hashCode.AddObject(RuntimeGraph);
-            hashCode.AddObject(RestoreMetadata);
-
-            return hashCode.CombinedHash;
+                hashCode.AddObject(Title);
+                hashCode.AddObject(Version);
+                hashCode.AddObject(IsDefaultVersion);
+                hashCode.AddObject(HasVersionSnapshot);
+                hashCode.AddObject(Description);
+                hashCode.AddObject(Summary);
+                hashCode.AddObject(ReleaseNotes);
+                hashCode.AddSequence(Authors);
+                hashCode.AddSequence(Owners);
+                hashCode.AddObject(ProjectUrl);
+                hashCode.AddObject(IconUrl);
+                hashCode.AddObject(LicenseUrl);
+                hashCode.AddObject(RequireLicenseAcceptance);
+                hashCode.AddObject(Copyright);
+                hashCode.AddObject(Language);
+                hashCode.AddObject(BuildOptions);
+                hashCode.AddSequence(Tags);
+                hashCode.AddSequence(ContentFiles);
+                hashCode.AddSequence(Dependencies);
+                hashCode.AddDictionary(Scripts);
+                hashCode.AddDictionary(PackInclude);
+                hashCode.AddObject(PackOptions);
+                hashCode.AddSequence(TargetFrameworks.OrderBy(tfm => tfm.TargetAlias));
+                hashCode.AddObject(RuntimeGraph);
+                hashCode.AddObject(RestoreMetadata);
+                _cachedHashCode = hashCode.CombinedHash;
+                return hashCode.CombinedHash;
+            }
+            return (int) _cachedHashCode;
         }
 
         public override bool Equals(object obj)
