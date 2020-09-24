@@ -130,7 +130,7 @@ namespace NuGet.Commands
                 var contextForProject = CreateRemoteWalkContext(_request, _logger);
 
                 CacheFile cacheFile = null;
-                int originalHashValue = default;
+                int originalHashValue = 0;
 
                 using (var noOpTelemetry = TelemetryActivity.Create(parentId: _operationId, eventName: RestoreNoOpInformation))
                 {
@@ -214,7 +214,7 @@ namespace NuGet.Commands
                             cacheFile.Success = _success;
                         }
 
-                        var newHashValue = _request.DependencyGraphSpec.GetHash2();
+                        var newHashValue = _request.DependencyGraphSpec?.GetHash2() ?? 0;
                         if (originalHashValue != newHashValue)
                         {
                             throw new ArgumentException("Well this sucks! 2" + Environment.NewLine + $"For{_request.Project.Name}, old hash{originalHashValue}, new hash {newHashValue}");
