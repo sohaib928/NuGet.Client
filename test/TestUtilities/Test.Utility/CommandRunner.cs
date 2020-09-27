@@ -64,19 +64,31 @@ namespace NuGet.Test.Utility
             {
                 p = new Process();
 
+                p.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                        output.AppendLine(e.Data);
+                });
+
+                p.ErrorDataReceived += new DataReceivedEventHandler((sender, e) =>
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                        errors.AppendLine(e.Data);
+                });
+
                 p.StartInfo = psi;
                 p.Start();
 
-                var outputTask = ConsumeStreamReaderAsync(p.StandardOutput, output);
-                var errorTask = ConsumeStreamReaderAsync(p.StandardError, errors);
-
                 inputAction?.Invoke(p.StandardInput);
+
+                p.BeginOutputReadLine();
+                p.BeginErrorReadLine();
 
                 if (waitForExit)
                 {
-#if DEBUG
-                    var processExited = true;
+#if DEBUG                   
                     p.WaitForExit();
+                    var processExited = true;
 #else
                     var processExited = p.WaitForExit(timeOutInMilliseconds);
 #endif
@@ -90,12 +102,8 @@ namespace NuGet.Test.Utility
                         throw new TimeoutException($"{processName} timed out: " + psi.Arguments);
                     }
 
-                    if (processExited)
-                    {
-                        Task.WaitAll(outputTask, errorTask);
-                        exitCode = p.ExitCode;
-                    }
-                }
+                    exitCode = p.ExitCode;
+                }                
             }
             finally
             {
@@ -104,19 +112,7 @@ namespace NuGet.Test.Utility
                     p.Dispose();
                 }
             }
-
             return new CommandRunnerResult(p, exitCode, output.ToString(), errors.ToString());
-        }
-
-        private static async Task ConsumeStreamReaderAsync(StreamReader reader, StringBuilder lines)
-        {
-            await Task.Yield();
-
-            string line;
-            while ((line = await reader.ReadLineAsync()) != null)
-            {
-                lines.AppendLine(line);
-            }
         }
 
         private static void Kill(Process process)
