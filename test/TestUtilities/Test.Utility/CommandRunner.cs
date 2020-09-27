@@ -92,7 +92,12 @@ namespace NuGet.Test.Utility
 #else
                     var processExited = p.WaitForExit(timeOutInMilliseconds);
 #endif
-                    if (!processExited)
+                    if (processExited)
+                    {
+                        p.WaitForExit();
+                        exitCode = p.ExitCode;
+                    }
+                    else
                     {
                         Kill(p);
                         WaitForExit(p);
@@ -101,8 +106,6 @@ namespace NuGet.Test.Utility
 
                         throw new TimeoutException($"{processName} timed out: " + psi.Arguments);
                     }
-
-                    exitCode = p.ExitCode;
                 }
             }
             finally
