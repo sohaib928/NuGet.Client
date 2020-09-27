@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common.test.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
@@ -8,6 +8,7 @@
     <TestProject>true</TestProject>
     <TestProjectType>functional</TestProjectType>
     <Description>Integration tests for the more involved NuGet.Protocol functionality, such as plugins.</Description>
+    <UseParallelXunit>true</UseParallelXunit>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,18 +25,12 @@
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="xunit.runner.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
   <PropertyGroup>
     <PostBuildEvent Condition="'$(OS)' == 'Windows_NT'">
       xcopy /diye $(ArtifactsDirectory)TestablePlugin\$(BuildVariationFolder)\bin\$(Configuration)\$(TargetFramework)\* $(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)\TestablePlugin\
     </PostBuildEvent>
   </PropertyGroup>
-  
-  <Import Project="$(BuildCommonDirectory)common.targets"/>
+
+  <Import Project="$(BuildCommonDirectory)common.targets" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>
