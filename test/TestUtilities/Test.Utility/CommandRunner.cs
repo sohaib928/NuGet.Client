@@ -103,7 +103,7 @@ namespace NuGet.Test.Utility
                     }
 
                     exitCode = p.ExitCode;
-                }                
+                }
             }
             finally
             {
