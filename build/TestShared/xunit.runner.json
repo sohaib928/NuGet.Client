@@ -2,5 +2,5 @@
   "diagnosticMessages": true,
   "methodDisplay": "classAndMethod",
   "parallelizeTestCollections": true,
-  "longRunningTestSeconds": 1200
+  "longRunningTestSeconds": 120
 }
